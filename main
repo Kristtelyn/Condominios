@@ -1,0 +1,148 @@
+// Archivo: Apartment.java
+public class Apartment {
+    int number;
+    boolean rented;
+    String tenantName;
+
+    public Apartment(int number) {
+        this.number = number;
+        this.rented = false;
+        this.tenantName = null;
+    }
+
+    public void rent(String tenantName) {
+        this.rented = true;
+        this.tenantName = tenantName;
+    }
+
+    public void vacate() {
+        this.rented = false;
+        this.tenantName = null;
+    }
+
+    @Override
+    public String toString() {
+        if (rented) return "Apto " + number + " - Alquilado a: " + tenantName;
+        else return "Apto " + number + " - Disponible";
+    }
+}
+
+// Archivo: Condominium.java
+import java.util.ArrayList;
+import java.util.List;
+
+public class Condominium {
+    private List<Apartment> apartments = new ArrayList<>();
+
+    public Condominium(int totalApartments) {
+        for (int i = 1; i <= totalApartments; i++) {
+            apartments.add(new Apartment(i));
+        }
+    }
+
+    public void listAll() {
+        System.out.println("Estado de los apartamentos:");
+        for (Apartment a : apartments) {
+            System.out.println(a);
+        }
+    }
+
+    public Apartment findByNumber(int number) {
+        for (Apartment a : apartments) {
+            if (a.number == number) return a;
+        }
+        return null;
+    }
+
+    public boolean rentApartment(int number, String tenantName) {
+        Apartment a = findByNumber(number);
+        if (a == null) return false; // no existe
+        if (a.rented) return false;  // ya alquilado
+        a.rent(tenantName);
+        return true;
+    }
+
+    public boolean vacateApartment(int number) {
+        Apartment a = findByNumber(number);
+        if (a == null) return false;
+        if (!a.rented) return false; // ya está libre
+        a.vacate();
+        return true;
+    }
+}
+
+// Archivo: MainCondominio.java
+import java.util.Scanner;
+
+public class MainCondominio {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Sistema simple de alquiler - Condominio");
+        System.out.print("¿Cuántos apartamentos tiene el condominio? ");
+        int total = safeInt(sc);
+        Condominium condo = new Condominium(Math.max(1, total));
+
+        boolean running = true;
+        while (running) {
+            System.out.println();
+            System.out.println("--- Menú ---");
+            System.out.println("1. Listar apartamentos");
+            System.out.println("2. Alquilar apartamento");
+            System.out.println("3. Desocupar apartamento");
+            System.out.println("4. Ver estado de un apartamento");
+            System.out.println("5. Salir");
+            System.out.print("Elija una opción: ");
+            int opt = safeInt(sc);
+
+            switch (opt) {
+                case 1:
+                    condo.listAll();
+                    break;
+                case 2:
+                    System.out.print("Número de apartamento a alquilar: ");
+                    int numRent = safeInt(sc);
+                    System.out.print("Nombre del inquilino: ");
+                    String name = sc.nextLine().trim();
+                    if (name.isEmpty()) name = "(sin nombre)";
+                    boolean rented = condo.rentApartment(numRent, name);
+                    if (rented) System.out.println("Apartamento " + numRent + " alquilado a " + name + ".");
+                    else System.out.println("No se pudo alquilar. Verifique número o si ya está alquilado.");
+                    break;
+                case 3:
+                    System.out.print("Número de apartamento a desocupar: ");
+                    int numVac = safeInt(sc);
+                    boolean vacated = condo.vacateApartment(numVac);
+                    if (vacated) System.out.println("Apartamento " + numVac + " ahora está disponible.");
+                    else System.out.println("No se pudo desocupar. Verifique número o si ya está disponible.");
+                    break;
+                case 4:
+                    System.out.print("Número de apartamento: ");
+                    int num = safeInt(sc);
+                    Apartment a = condo.findByNumber(num);
+                    if (a != null) System.out.println(a);
+                    else System.out.println("Apartamento no encontrado.");
+                    break;
+                case 5:
+                    running = false;
+                    System.out.println("Saliendo...");
+                    break;
+                default:
+                    System.out.println("Opción no válida.");
+            }
+        }
+
+        sc.close();
+    }
+
+    // Método auxiliar para leer un entero de forma segura
+    private static int safeInt(Scanner sc) {
+        while (true) {
+            String line = sc.nextLine().trim();
+            try {
+                return Integer.parseInt(line);
+            } catch (NumberFormatException e) {
+                System.out.print("Entrada inválida. Ingrese un número: ");
+            }
+        }
+    }
+}
